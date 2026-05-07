@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from '../src/auth/password.js';
 
 const prisma = new PrismaClient();
+const demoUserEmail = 'admin@example.com';
 
 const defaultStatuses = [
   { name: 'to do', position: 1 },
@@ -16,6 +18,16 @@ async function main() {
       create: status,
     });
   }
+
+  await prisma.user.upsert({
+    where: { email: demoUserEmail },
+    update: {},
+    create: {
+      email: demoUserEmail,
+      name: 'Admin',
+      passwordHash: hashPassword('ChangeMe123'),
+    },
+  });
 }
 
 main()

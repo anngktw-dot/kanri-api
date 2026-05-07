@@ -19,8 +19,37 @@ model User {
   reportedTasks    Task[]             @relation("TaskReporter")
   comments         Comment[]
   notifications    Notification[]
+  revokedTokens    RevokedToken[]
+  refreshTokens    RefreshToken[]
 
   @@map("users")
+}
+
+model RevokedToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenJti  String   @unique @map("token_jti") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("revoked_tokens")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  userId    String    @map("user_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 model Workspace {

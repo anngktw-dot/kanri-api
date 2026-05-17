@@ -6,6 +6,10 @@ import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
 import { usersRouter } from './users/users.router.js';
 import swaggerUi from 'swagger-ui-express';
+import { statusesRouter } from './statuses/statuses.router.js';
+import { tasksRouter } from './tasks/tasks.router.js';
+
+app.use('/tasks', tasksRouter);
 
 export const app = express();
 
@@ -82,6 +86,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
+app.use('/statuses', statusesRouter);
 
 app.use((_req: Request, res: Response) => {
   sendError(res, 404, 'Route not found');

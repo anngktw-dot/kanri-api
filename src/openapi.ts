@@ -11,7 +11,7 @@ export const openApiDocument = {
       description: 'Local development',
     },
   ],
-  tags: [{ name: 'System' }, { name: 'Auth' }, { name: 'Users' }],
+  tags: [{ name: 'System' }, { name: 'Auth' }, { name: 'Users' }, { name: 'Statuses' }],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -68,6 +68,37 @@ export const openApiDocument = {
         responses: {
           '200': {
             description: 'API is running',
+          },
+        },
+      },
+    },
+    '/statuses': {
+      get: {
+        tags: ['Statuses'],
+        summary: 'get default task statuses',
+        description: 'Returns a list of all default statuses for tasks, sorted by position.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Successful retrieval of statuses',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      name: { type: 'string' },
+                      position: { type: 'integer' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'User is not authorized to access this resource',
           },
         },
       },

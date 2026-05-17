@@ -5,9 +5,10 @@ const prisma = new PrismaClient();
 const demoUserEmail = 'admin@example.com';
 
 const defaultStatuses = [
-  { name: 'to do', position: 1 },
-  { name: 'in progress', position: 2 },
-  { name: 'done', position: 3 },
+  { name: 'To Do', position: 1 },
+  { name: 'InProgress', position: 2 },
+  { name: 'Review', position: 3 },
+  { name: 'Done', position: 4 },
 ];
 
 async function main() {

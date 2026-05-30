@@ -5,8 +5,11 @@ import { cors, requestId, securityHeaders } from './http/middleware.js';
 import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
 import { usersRouter } from './users/users.router.js';
+import { tasksRouter } from './tasks/tasks.router.js';
 
 export const app = express();
+
+app.use('/tasks', tasksRouter);
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);

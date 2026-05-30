@@ -25,7 +25,7 @@ async function main() {
     create: {
       email: demoUserEmail,
       name: 'Admin',
-      passwordHash: hashPassword('ChangeMe123'),
+      passwordHash: hashPassword('password123'),
     },
   });
 }

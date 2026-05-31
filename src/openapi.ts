@@ -11,7 +11,13 @@ export const openApiDocument = {
       description: 'Local development',
     },
   ],
-  tags: [{ name: 'System' }, { name: 'Auth' }, { name: 'Users' }, { name: 'Tasks' }],
+  tags: [
+    { name: 'System' },
+    { name: 'Auth' },
+    { name: 'Users' },
+    { name: 'Tasks' },
+    { name: 'Statuses' },
+  ],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -327,6 +333,37 @@ export const openApiDocument = {
           },
           '404': {
             description: 'Task not found',
+          },
+        },
+      },
+    },
+    '/statuses': {
+      get: {
+        tags: ['Statuses'],
+        summary: 'Get all statuses',
+        description: 'Returns a list of all default task statuses sorted by position.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Successful response',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      name: { type: 'string' },
+                      position: { type: 'integer' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Unauthorized',
           },
         },
       },

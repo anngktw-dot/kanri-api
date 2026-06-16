@@ -3,6 +3,7 @@ import { prisma } from '../db.js';
 import { sendError } from '../http/responses.js';
 import { jwtGuard } from '../auth/middleware.js';
 import { TransitionService } from './transition.service.js';
+import { NotificationService } from '../notifications/notification.service.js';
 
 export const tasksRouter = Router();
 
@@ -71,6 +72,47 @@ tasksRouter.patch('/:id/status', jwtGuard, async (req: Request, res: Response) =
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
       data: { statusId },
+    });
+
+    if (updatedTask.assigneeId) {
+      await NotificationService.create(
+        updatedTask.assigneeId,
+        'Task Status Updated',
+        `The status of your task "${updatedTask.title}" has been changed`,
+        updatedTask.id,
+      );
+    }
+    tasksRouter.patch('/:id/assignee', jwtGuard, async (req: Request, res: Response) => {
+      try {
+        const taskId = req.params.id as string;
+        const { assigneeId } = req.body;
+
+        const reqData = req as unknown as { user?: { id: string }; userId?: string };
+        const userId = reqData.user?.id || reqData.userId;
+
+        if (!userId) {
+          return sendError(res, 401, 'Unauthorized');
+        }
+
+        const updatedTask = await prisma.task.update({
+          where: { id: taskId },
+          data: { assigneeId },
+        });
+
+        if (assigneeId) {
+          await NotificationService.create(
+            assigneeId,
+            'New Task Assigned',
+            `You have been assigned to the task "${updatedTask.title}"`,
+            taskId,
+          );
+        }
+
+        res.status(200).json(updatedTask);
+      } catch (error) {
+        console.error(error);
+        sendError(res, 500, 'Internal server error');
+      }
     });
 
     res.status(200).json(updatedTask);

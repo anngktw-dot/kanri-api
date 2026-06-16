@@ -17,6 +17,8 @@ export const openApiDocument = {
     { name: 'Users' },
     { name: 'Tasks' },
     { name: 'Statuses' },
+    { name: 'Notifications' },
+    { name: 'Comments' },
   ],
   components: {
     securitySchemes: {
@@ -364,6 +366,128 @@ export const openApiDocument = {
           },
           '404': {
             description: 'Task not found',
+          },
+        },
+      },
+    },
+    '/notifications': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get all notifications',
+        description:
+          'Returns a list of all notifications for the current user, sorted by creation date descending.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Successful response',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      userId: { type: 'string' },
+                      title: { type: 'string' },
+                      message: { type: 'string' },
+                      isRead: { type: 'boolean' },
+                      taskId: { type: 'string', nullable: true },
+                      createdAt: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+        },
+      },
+    },
+    '/notifications/unread-count': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get unread notifications count',
+        description: 'Returns the total number of unread notifications for the badge icon.',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Successful response',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    count: { type: 'integer' },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+        },
+      },
+    },
+    '/notifications/{id}/read': {
+      patch: {
+        tags: ['Notifications'],
+        summary: 'Mark notification as read',
+        description: 'Changes the status of a specific notification to read.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Successfully marked as read',
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+          '403': {
+            description: 'Forbidden',
+          },
+          '404': {
+            description: 'Notification not found',
+          },
+        },
+      },
+    },
+    '/comments/{id}': {
+      delete: {
+        tags: ['Comments'],
+        summary: 'Delete a comment',
+        description: 'Deletes a comment if the user is the author or an admin.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '204': {
+            description: 'Successfully deleted',
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+          '403': {
+            description: 'Forbidden (Not the author and not an admin)',
+          },
+          '404': {
+            description: 'Comment not found',
           },
         },
       },

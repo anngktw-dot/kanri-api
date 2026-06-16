@@ -8,6 +8,8 @@ import { usersRouter } from './users/users.router.js';
 import swaggerUi from 'swagger-ui-express';
 import { tasksRouter } from './tasks/tasks.router.js';
 import { statusesRouter } from './statuses/statuses.router.js';
+import { notificationsRouter } from './notifications/notifications.router.js';
+import { commentsRouter } from './comments/comments.router.js';
 
 export const app = express();
 
@@ -19,6 +21,8 @@ app.use(requestId);
 app.use(securityHeaders);
 app.use(cors);
 app.use(express.json({ limit: '1mb' }));
+app.use('/notifications', notificationsRouter);
+app.use('/comments', commentsRouter);
 
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({

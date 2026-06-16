@@ -26,9 +26,37 @@ async function main() {
     create: {
       email: demoUserEmail,
       name: 'Admin',
-      passwordHash: hashPassword('ChangeMe123'),
+      passwordHash: hashPassword('password123'),
     },
   });
+}
+const todo = await prisma.status.findUnique({ where: { name: 'To Do' } });
+const inProgress = await prisma.status.findUnique({ where: { name: 'InProgress' } });
+const review = await prisma.status.findUnique({ where: { name: 'Review' } });
+const done = await prisma.status.findUnique({ where: { name: 'Done' } });
+
+if (todo && inProgress && review && done) {
+  const rules = [
+    { fromStatusId: todo.id, toStatusId: inProgress.id, allowedRole: null },
+    { fromStatusId: inProgress.id, toStatusId: review.id, allowedRole: null },
+    { fromStatusId: review.id, toStatusId: inProgress.id, allowedRole: null },
+    { fromStatusId: review.id, toStatusId: done.id, allowedRole: 'admin' },
+  ];
+
+  console.log('creating transition rules...');
+  for (const rule of rules) {
+    const existingRule = await prisma.transitionRule.findFirst({
+      where: {
+        fromStatusId: rule.fromStatusId,
+        toStatusId: rule.toStatusId,
+      },
+    });
+
+    if (!existingRule) {
+      await prisma.transitionRule.create({ data: rule });
+    }
+  }
+  console.log('Transition rules created successfully!');
 }
 
 main()

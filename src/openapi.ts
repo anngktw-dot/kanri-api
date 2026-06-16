@@ -11,7 +11,13 @@ export const openApiDocument = {
       description: 'Local development',
     },
   ],
-  tags: [{ name: 'System' }, { name: 'Auth' }, { name: 'Users' }, { name: 'Statuses' }],
+  tags: [
+    { name: 'System' },
+    { name: 'Auth' },
+    { name: 'Users' },
+    { name: 'Tasks' },
+    { name: 'Statuses' },
+  ],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -268,6 +274,97 @@ export const openApiDocument = {
             },
           },
           '401': { description: 'Invalid or missing access token' },
+        },
+      },
+    },
+    '/tasks/{id}/status': {
+      patch: {
+        tags: ['Tasks'],
+        summary: 'Update task status',
+        description:
+          'Changes the status of a task after validating transition rules, limits, and user roles.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  statusId: { type: 'string' },
+                },
+                required: ['statusId'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Status successfully updated',
+          },
+          '400': {
+            description: 'Bad Request (e.g., TRANSITION_NOT_ALLOWED, LIMIT_EXCEEDED)',
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+          '403': {
+            description: 'Forbidden (ROLE_REQUIRED)',
+          },
+          '404': {
+            description: 'Task not found',
+          },
+        },
+      },
+    },
+    '/tasks/{id}/available-transitions': {
+      get: {
+        tags: ['Tasks'],
+        summary: 'Get available transitions',
+        description:
+          'Returns a list of allowed status transitions for a specific task based on rules and user context.',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'List of available statuses',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      name: { type: 'string' },
+                      position: { type: 'integer' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Unauthorized',
+          },
+          '404': {
+            description: 'Task not found',
+          },
         },
       },
     },

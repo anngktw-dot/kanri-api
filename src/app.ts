@@ -6,13 +6,13 @@ import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
 import { usersRouter } from './users/users.router.js';
 import swaggerUi from 'swagger-ui-express';
-import { statusesRouter } from './statuses/statuses.router.js';
 import { tasksRouter } from './tasks/tasks.router.js';
-
-app.use('/tasks', tasksRouter);
+import { statusesRouter } from './statuses/statuses.router.js';
 
 export const app = express();
 
+app.use('/tasks', tasksRouter);
+app.use('/statuses', statusesRouter);
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(requestId);

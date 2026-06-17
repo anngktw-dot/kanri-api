@@ -12,6 +12,7 @@ const defaultStatuses = [
 ];
 
 async function main() {
+  console.log('Creating statuses...');
   for (const status of defaultStatuses) {
     await prisma.status.upsert({
       where: { name: status.name },
@@ -20,6 +21,7 @@ async function main() {
     });
   }
 
+  console.log('Creating user...');
   await prisma.user.upsert({
     where: { email: demoUserEmail },
     update: {},
@@ -29,34 +31,38 @@ async function main() {
       passwordHash: hashPassword('password123'),
     },
   });
-}
-const todo = await prisma.status.findUnique({ where: { name: 'To Do' } });
-const inProgress = await prisma.status.findUnique({ where: { name: 'InProgress' } });
-const review = await prisma.status.findUnique({ where: { name: 'Review' } });
-const done = await prisma.status.findUnique({ where: { name: 'Done' } });
 
-if (todo && inProgress && review && done) {
-  const rules = [
-    { fromStatusId: todo.id, toStatusId: inProgress.id, allowedRole: null },
-    { fromStatusId: inProgress.id, toStatusId: review.id, allowedRole: null },
-    { fromStatusId: review.id, toStatusId: inProgress.id, allowedRole: null },
-    { fromStatusId: review.id, toStatusId: done.id, allowedRole: 'admin' },
-  ];
+  console.log('Fetching statuses for rules...');
+  const todo = await prisma.status.findUnique({ where: { name: 'To Do' } });
+  const inProgress = await prisma.status.findUnique({ where: { name: 'InProgress' } });
+  const review = await prisma.status.findUnique({ where: { name: 'Review' } });
+  const done = await prisma.status.findUnique({ where: { name: 'Done' } });
 
-  console.log('creating transition rules...');
-  for (const rule of rules) {
-    const existingRule = await prisma.transitionRule.findFirst({
-      where: {
-        fromStatusId: rule.fromStatusId,
-        toStatusId: rule.toStatusId,
-      },
-    });
+  if (todo && inProgress && review && done) {
+    const rules = [
+      { fromStatusId: todo.id, toStatusId: inProgress.id, allowedRole: null },
+      { fromStatusId: inProgress.id, toStatusId: review.id, allowedRole: null },
+      { fromStatusId: review.id, toStatusId: inProgress.id, allowedRole: null },
+      { fromStatusId: review.id, toStatusId: done.id, allowedRole: 'admin' },
+    ];
 
-    if (!existingRule) {
-      await prisma.transitionRule.create({ data: rule });
+    console.log('Creating transition rules...');
+    for (const rule of rules) {
+      const existingRule = await prisma.transitionRule.findFirst({
+        where: {
+          fromStatusId: rule.fromStatusId,
+          toStatusId: rule.toStatusId,
+        },
+      });
+
+      if (!existingRule) {
+        await prisma.transitionRule.create({ data: rule });
+      }
     }
+    console.log('Transition rules created successfully!');
+  } else {
+    console.log('Could not find all statuses, skipping transition rules creation.');
   }
-  console.log('Transition rules created successfully!');
 }
 
 main()

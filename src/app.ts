@@ -4,11 +4,10 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 
 import { prisma } from './db.js';
-import { requestId, securityHeaders } from './http/middleware.js'; // 'cors' звідси прибрали
+import { requestId, securityHeaders } from './http/middleware.js';
 import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
 
-// Роутери
 import { authRouter } from './auth/auth.router.js';
 import { usersRouter } from './users/users.router.js';
 import { tasksRouter } from './tasks/tasks.router.js';

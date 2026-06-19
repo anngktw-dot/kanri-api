@@ -1,64 +1,51 @@
 import type { NextFunction, Request, Response } from 'express';
-import { prisma } from '../db.js';
+import { sendError } from '../http/responses.js';
+import { verifyAccessToken } from './jwt.js';
 import { isTokenRevoked } from './token-blacklist.js';
-import { verifyAccessToken, type AccessTokenPayload } from './jwt.js';
 
-export type AuthenticatedRequest = Request & {
+export interface AuthenticatedRequest extends Request {
   auth: {
-    token: string;
-    payload: AccessTokenPayload;
+    payload: {
+      jti: string;
+      sub: string;
+      exp: number;
+      email: string;
+      [key: string]: unknown;
+    };
   };
-};
-
-function getBearerToken(req: Request): string | null {
-  const authorization = req.header('authorization');
-
-  if (!authorization) {
-    return null;
-  }
-
-  const [scheme, token] = authorization.split(' ');
-
-  if (scheme !== 'Bearer' || !token) {
-    return null;
-  }
-
-  return token;
 }
 
 export async function jwtGuard(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const token = getBearerToken(req);
-
-  if (!token) {
-    res.status(401).json({ message: 'Missing bearer token' });
-    return;
-  }
-
   try {
+    const token = req.cookies?.accessToken;
+
+    if (!token) {
+      sendError(res, 401, 'Unauthorized: No token provided');
+      return;
+    }
+
     const payload = verifyAccessToken(token);
 
-    if (await isTokenRevoked(payload.jti)) {
-      res.status(401).json({ message: 'Token is invalidated' });
+    const revoked = await isTokenRevoked(payload.jti);
+    if (revoked) {
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+      sendError(res, 401, 'Unauthorized: Token has been revoked');
       return;
     }
 
-    const userExists = await prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: { id: true },
-    });
-
-    if (!userExists) {
-      res.status(401).json({ message: 'Token user no longer exists' });
-      return;
-    }
-
-    (req as AuthenticatedRequest).auth = {
-      token,
-      payload,
-    };
+    (req as AuthenticatedRequest).auth = { payload };
 
     next();
   } catch {
-    res.status(401).json({ message: 'Invalid bearer token' });
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+    sendError(res, 401, 'Unauthorized: Invalid or expired token');
   }
 }

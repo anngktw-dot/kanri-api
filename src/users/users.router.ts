@@ -5,6 +5,21 @@ import { publicUser } from '../http/responses.js';
 
 export const usersRouter = Router();
 
+usersRouter.get('/', jwtGuard, async (_req: Request, res: Response) => {
+  const users = await prisma.user.findMany({
+    orderBy: [{ name: 'asc' }, { email: 'asc' }],
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  res.status(200).json({ users: users.map(publicUser) });
+});
+
 usersRouter.get('/me', jwtGuard, async (req: Request, res: Response) => {
   const { payload } = (req as AuthenticatedRequest).auth;
   const user = await prisma.user.findUniqueOrThrow({

@@ -1,0 +1,9 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kanri">
+  <circle cx="15" cy="14" r="5" fill="#F59E18" />
+  <path d="M25 14H50C56.6274 14 62 19.3726 62 26V34" stroke="#3F7DF3" stroke-width="10" stroke-linecap="round" />
+  <path d="M48 24L62 34L48 44" stroke="#3F7DF3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M30 26H18C13.5817 26 10 29.5817 10 34V52C10 56.4183 13.5817 60 18 60H32" stroke="#18B88F" stroke-width="10" stroke-linecap="round" />
+  <path d="M25 48L38 60L25 72" stroke="#18B88F" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M55 66H30C23.3726 66 18 60.6274 18 54V46" stroke="#7A4EDB" stroke-width="10" stroke-linecap="round" />
+  <path d="M32 56L18 46L32 36" stroke="#7A4EDB" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

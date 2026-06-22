@@ -17,6 +17,19 @@ import { commentsRouter } from './comments/comments.router.js';
 
 export const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://deliveryleleka.netlify.app',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
+
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 

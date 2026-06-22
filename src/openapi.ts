@@ -16,8 +16,6 @@ export const openApiDocument = {
     { name: 'Auth' },
     { name: 'Users' },
     { name: 'Tasks' },
-    { name: 'Statuses' },
-    { name: 'Notifications' },
     { name: 'Comments' },
   ],
   components: {
@@ -66,6 +64,57 @@ export const openApiDocument = {
           user: { $ref: '#/components/schemas/User' },
         },
       },
+      Task: {
+        type: 'object',
+        required: ['id', 'title', 'description', 'status', 'assignee', 'deadline', 'priority'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          title: { type: 'string' },
+          description: { type: 'string', nullable: true },
+          status: { type: 'string', example: 'To Do' },
+          assignee: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'string', format: 'uuid' },
+              email: { type: 'string', format: 'email' },
+              name: { type: 'string', nullable: true },
+            },
+          },
+          reporter: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'string', format: 'uuid' },
+              email: { type: 'string', format: 'email' },
+              name: { type: 'string', nullable: true },
+            },
+          },
+          deadline: { type: 'string', format: 'date-time', nullable: true },
+          priority: { type: 'string', example: 'medium' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      Comment: {
+        type: 'object',
+        required: ['id', 'taskId', 'body', 'author', 'createdAt', 'updatedAt'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          taskId: { type: 'string', format: 'uuid' },
+          body: { type: 'string' },
+          author: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', format: 'uuid' },
+              email: { type: 'string', format: 'email' },
+              name: { type: 'string', nullable: true },
+            },
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   paths: {
@@ -76,37 +125,6 @@ export const openApiDocument = {
         responses: {
           '200': {
             description: 'API is running',
-          },
-        },
-      },
-    },
-    '/statuses': {
-      get: {
-        tags: ['Statuses'],
-        summary: 'get default task statuses',
-        description: 'Returns a list of all default statuses for tasks, sorted by position.',
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': {
-            description: 'Successful retrieval of statuses',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'string' },
-                      name: { type: 'string' },
-                      position: { type: 'integer' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          '401': {
-            description: 'User is not authorized to access this resource',
           },
         },
       },
@@ -287,19 +305,131 @@ export const openApiDocument = {
         },
       },
     },
-    '/tasks/{id}/status': {
-      patch: {
+    '/tasks': {
+      post: {
         tags: ['Tasks'],
-        summary: 'Update task status',
-        description:
-          'Changes the status of a task after validating transition rules, limits, and user roles.',
+        summary: 'Create a task',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['title', 'assignee'],
+                properties: {
+                  title: { type: 'string' },
+                  description: { type: 'string' },
+                  assignee: { type: 'string', description: 'User id or email' },
+                  assigneeId: { type: 'string', format: 'uuid' },
+                  deadline: { type: 'string', format: 'date-time' },
+                  priority: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Task created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['task'],
+                  properties: {
+                    task: { $ref: '#/components/schemas/Task' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Invalid request or active task limit reached' },
+          '401': { description: 'Invalid or missing access token' },
+          '404': { description: 'Assignee not found' },
+        },
+      },
+      get: {
+        tags: ['Tasks'],
+        summary: 'List tasks',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'status',
+            in: 'query',
+            schema: { type: 'string' },
+          },
+          {
+            name: 'assignee',
+            in: 'query',
+            schema: { type: 'string' },
+            description: 'User id or email',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Task list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['tasks'],
+                  properties: {
+                    tasks: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Task' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Invalid or missing access token' },
+        },
+      },
+    },
+    '/tasks/{id}': {
+      get: {
+        tags: ['Tasks'],
+        summary: 'Get task details',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
             in: 'path',
             required: true,
-            schema: { type: 'string' },
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Task details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['task'],
+                  properties: {
+                    task: { $ref: '#/components/schemas/Task' },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Invalid or missing access token' },
+          '404': { description: 'Task not found' },
+        },
+      },
+      patch: {
+        tags: ['Tasks'],
+        summary: 'Update a task',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
           },
         ],
         requestBody: {
@@ -309,164 +439,137 @@ export const openApiDocument = {
               schema: {
                 type: 'object',
                 properties: {
-                  statusId: { type: 'string' },
-                },
-                required: ['statusId'],
-              },
-            },
-          },
-        },
-        responses: {
-          '200': {
-            description: 'Status successfully updated',
-          },
-          '400': {
-            description: 'Bad Request (e.g., TRANSITION_NOT_ALLOWED, LIMIT_EXCEEDED)',
-          },
-          '401': {
-            description: 'Unauthorized',
-          },
-          '403': {
-            description: 'Forbidden (ROLE_REQUIRED)',
-          },
-          '404': {
-            description: 'Task not found',
-          },
-        },
-      },
-    },
-    '/tasks/{id}/available-transitions': {
-      get: {
-        tags: ['Tasks'],
-        summary: 'Get available transitions',
-        description:
-          'Returns a list of allowed status transitions for a specific task based on rules and user context.',
-        security: [{ bearerAuth: [] }],
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: { type: 'string' },
-          },
-        ],
-        responses: {
-          '200': {
-            description: 'List of available statuses',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'string' },
-                      name: { type: 'string' },
-                      position: { type: 'integer' },
-                    },
-                  },
+                  title: { type: 'string' },
+                  description: { type: 'string', nullable: true },
+                  status: { type: 'string', example: 'Review' },
+                  assignee: { type: 'string', description: 'User id or email' },
+                  assigneeId: { type: 'string', format: 'uuid' },
+                  deadline: { type: 'string', format: 'date-time', nullable: true },
+                  priority: { type: 'string' },
                 },
               },
             },
           },
-          '401': {
-            description: 'Unauthorized',
-          },
-          '404': {
-            description: 'Task not found',
-          },
         },
-      },
-    },
-    '/notifications': {
-      get: {
-        tags: ['Notifications'],
-        summary: 'Get all notifications',
-        description:
-          'Returns a list of all notifications for the current user, sorted by creation date descending.',
-        security: [{ bearerAuth: [] }],
         responses: {
           '200': {
-            description: 'Successful response',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'string' },
-                      userId: { type: 'string' },
-                      title: { type: 'string' },
-                      message: { type: 'string' },
-                      isRead: { type: 'boolean' },
-                      taskId: { type: 'string', nullable: true },
-                      createdAt: { type: 'string' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          '401': {
-            description: 'Unauthorized',
-          },
-        },
-      },
-    },
-    '/notifications/unread-count': {
-      get: {
-        tags: ['Notifications'],
-        summary: 'Get unread notifications count',
-        description: 'Returns the total number of unread notifications for the badge icon.',
-        security: [{ bearerAuth: [] }],
-        responses: {
-          '200': {
-            description: 'Successful response',
+            description: 'Updated task',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
+                  required: ['task'],
                   properties: {
-                    count: { type: 'integer' },
+                    task: { $ref: '#/components/schemas/Task' },
                   },
                 },
               },
             },
           },
-          '401': {
-            description: 'Unauthorized',
-          },
+          '400': { description: 'Invalid request or invalid status transition' },
+          '401': { description: 'Invalid or missing access token' },
+          '404': { description: 'Task, assignee, or status not found' },
         },
       },
-    },
-    '/notifications/{id}/read': {
-      patch: {
-        tags: ['Notifications'],
-        summary: 'Mark notification as read',
-        description: 'Changes the status of a specific notification to read.',
+      delete: {
+        tags: ['Tasks'],
+        summary: 'Delete a task',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
             in: 'path',
             required: true,
-            schema: { type: 'string' },
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Task deleted' },
+          '401': { description: 'Invalid or missing access token' },
+          '403': { description: 'Only administrators or task authors can delete' },
+          '404': { description: 'Task not found' },
+        },
+      },
+    },
+    '/tasks/{id}/comments': {
+      post: {
+        tags: ['Comments'],
+        summary: 'Create a task comment',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['body'],
+                properties: {
+                  body: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Comment created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['comment'],
+                  properties: {
+                    comment: { $ref: '#/components/schemas/Comment' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { description: 'Invalid request' },
+          '401': { description: 'Invalid or missing access token' },
+          '404': { description: 'Task not found' },
+        },
+      },
+      get: {
+        tags: ['Comments'],
+        summary: 'List task comments',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
           },
         ],
         responses: {
           '200': {
-            description: 'Successfully marked as read',
+            description: 'Task comments ordered from oldest to newest',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['comments'],
+                  properties: {
+                    comments: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Comment' },
+                    },
+                  },
+                },
+              },
+            },
           },
-          '401': {
-            description: 'Unauthorized',
-          },
-          '403': {
-            description: 'Forbidden',
-          },
-          '404': {
-            description: 'Notification not found',
-          },
+          '401': { description: 'Invalid or missing access token' },
+          '404': { description: 'Task not found' },
         },
       },
     },
@@ -474,29 +577,20 @@ export const openApiDocument = {
       delete: {
         tags: ['Comments'],
         summary: 'Delete a comment',
-        description: 'Deletes a comment if the user is the author or an admin.',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
             name: 'id',
             in: 'path',
             required: true,
-            schema: { type: 'string' },
+            schema: { type: 'string', format: 'uuid' },
           },
         ],
         responses: {
-          '204': {
-            description: 'Successfully deleted',
-          },
-          '401': {
-            description: 'Unauthorized',
-          },
-          '403': {
-            description: 'Forbidden (Not the author and not an admin)',
-          },
-          '404': {
-            description: 'Comment not found',
-          },
+          '200': { description: 'Comment deleted' },
+          '401': { description: 'Invalid or missing access token' },
+          '403': { description: 'Only administrators or comment authors can delete' },
+          '404': { description: 'Comment not found' },
         },
       },
     },

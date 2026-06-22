@@ -92,6 +92,38 @@ curl http://localhost:3000/users/me \
   -H "Authorization: Bearer <access-token>"
 ```
 
+Create a task:
+
+```bash
+curl -X POST http://localhost:3000/tasks \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <access-token>" \
+  -d '{"title":"Prepare release notes","assignee":"admin@example.com","description":"Draft and review notes","priority":"high"}'
+```
+
+List tasks, optionally filtered by `status` or `assignee`:
+
+```bash
+curl "http://localhost:3000/tasks?status=To%20Do&assignee=admin@example.com" \
+  -H "Authorization: Bearer <access-token>"
+```
+
+Update a task:
+
+```bash
+curl -X PATCH http://localhost:3000/tasks/<task-id> \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <access-token>" \
+  -d '{"status":"Review","deadline":"2026-05-20T12:00:00.000Z"}'
+```
+
+Delete a task:
+
+```bash
+curl -X DELETE http://localhost:3000/tasks/<task-id> \
+  -H "Authorization: Bearer <access-token>"
+```
+
 Logout invalidates the current access token until it expires:
 
 ```bash
@@ -138,6 +170,16 @@ You can import this document into Swagger UI, Postman, Insomnia, or any OpenAPI-
 Access tokens are signed with HS256 and include `sub`, `email`, `iat`, `exp`, and `jti` claims. The current access token TTL is 15 minutes. Refresh tokens are opaque random tokens stored as SHA-256 hashes and rotated on every refresh.
 
 Login and registration routes include a small IP-based rate limiter to reduce brute-force attempts.
+
+## Tasks
+
+- `POST /tasks` creates a task with `To Do` status, validates required `title` and `assignee`, and returns the created task for frontend use without a reload.
+- `GET /tasks` returns all tasks, with optional `status` and `assignee` filters.
+- `GET /tasks/:id` returns task details: title, description, status, assignee, deadline, and priority.
+- `PATCH /tasks/:id` updates title, description, status, assignee, deadline, or priority and returns the updated task.
+- `DELETE /tasks/:id` deletes the task only when the current user is a workspace administrator or the task author.
+- An assignee can have at most 3 active tasks. Active means every status except `Done`.
+- A task cannot be created as `Done`, and it cannot move to `Done` unless its current status is `Review`.
 
 ## Database
 

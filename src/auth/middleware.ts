@@ -15,9 +15,41 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
+function getCookie(req: Request, name: string): string | null {
+  const cookie = req.header('cookie');
+
+  if (!cookie) {
+    return null;
+  }
+
+  const pairs = cookie.split(';');
+
+  for (const pair of pairs) {
+    const [rawKey, ...rawValue] = pair.trim().split('=');
+
+    if (rawKey === name) {
+      return decodeURIComponent(rawValue.join('='));
+    }
+  }
+
+  return null;
+}
+
+function getBearerToken(req: Request): string | null {
+  const authorization = req.header('authorization');
+
+  if (!authorization) {
+    return null;
+  }
+
+  const [scheme, token] = authorization.split(' ');
+
+  return scheme?.toLowerCase() === 'bearer' && token ? token : null;
+}
+
 export async function jwtGuard(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const token = req.cookies?.accessToken;
+    const token = getBearerToken(req) ?? getCookie(req, 'accessToken');
 
     if (!token) {
       sendError(res, 401, 'Unauthorized: No token provided');

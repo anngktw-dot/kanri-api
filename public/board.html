@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kanri - Задачі</title>
+    <link rel="icon" href="/assets/kanri-logo.png" />
+    <link rel="stylesheet" href="/assets/board.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Навігація">
+        <a class="brand" href="/board" aria-label="Kanri">
+          <img class="brand-logo" src="/assets/kanri-logo.png" alt="" />
+          <span>Kanri</span>
+        </a>
+
+        <nav class="nav-list" aria-label="Головне меню">
+          <a class="nav-link active" href="/board">
+            <span class="nav-icon" aria-hidden="true">▦</span>
+            <span>Задачі</span>
+          </a>
+          <a class="nav-link" href="/docs">
+            <span class="nav-icon" aria-hidden="true">?</span>
+            <span>API</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="board-page">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Workspace</p>
+            <h1>Задачі</h1>
+          </div>
+          <div class="user-chip" id="user-chip">...</div>
+        </header>
+
+        <section class="toolbar" aria-label="Керування задачами">
+          <form class="task-form" id="task-form">
+            <label class="control">
+              <span>Назва задачі</span>
+              <input
+                id="task-title"
+                name="title"
+                type="text"
+                placeholder="Наприклад: Review UI"
+                required
+              />
+            </label>
+
+            <label class="control">
+              <span>Виконавець</span>
+              <select id="task-assignee" name="assignee" required></select>
+            </label>
+
+            <label class="control">
+              <span>Пріоритет</span>
+              <select name="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+
+            <button class="primary-button" type="submit">
+              <span aria-hidden="true">+</span>
+              <span>Створити</span>
+            </button>
+          </form>
+
+          <div class="filters">
+            <label class="control">
+              <span>Статус</span>
+              <select id="status-filter">
+                <option value="">Усі статуси</option>
+              </select>
+            </label>
+
+            <label class="control">
+              <span>Користувач</span>
+              <select id="user-filter">
+                <option value="">Усі користувачі</option>
+              </select>
+            </label>
+
+            <button class="secondary-button" id="reset-filters" type="button">
+              <span aria-hidden="true">↺</span>
+              <span>Скинути</span>
+            </button>
+          </div>
+
+          <form class="column-form" id="column-form">
+            <label class="control">
+              <span>Нова колонка</span>
+              <input
+                id="column-name"
+                name="name"
+                type="text"
+                placeholder="Назва статусу"
+                required
+              />
+            </label>
+            <button class="secondary-button" type="submit">
+              <span aria-hidden="true">+</span>
+              <span>Додати</span>
+            </button>
+          </form>
+        </section>
+
+        <section class="board-status" aria-live="polite">
+          <span id="board-message">Завантаження задач...</span>
+        </section>
+
+        <section class="kanban" id="kanban" aria-label="Дошка задач"></section>
+      </main>
+    </div>
+
+    <div class="toast-region" id="toast-region" aria-live="assertive" aria-atomic="true"></div>
+
+    <template id="task-card-template">
+      <article class="task-card">
+        <div class="task-card-head">
+          <h2></h2>
+          <span class="priority"></span>
+        </div>
+        <p class="task-description"></p>
+        <dl class="task-meta">
+          <div>
+            <dt>Виконавець</dt>
+            <dd data-field="assignee"></dd>
+          </div>
+          <div>
+            <dt>Дедлайн</dt>
+            <dd data-field="deadline"></dd>
+          </div>
+        </dl>
+        <label class="status-control">
+          <span>Статус</span>
+          <select data-action="status"></select>
+        </label>
+      </article>
+    </template>
+
+    <script src="/assets/board.js" defer></script>
+  </body>
+</html>

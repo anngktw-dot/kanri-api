@@ -56,8 +56,31 @@ async function sendTokenPair(
 
   res.status(status).json({
     message,
+    accessToken: access.accessToken,
+    tokenType: 'Bearer',
+    expiresIn: access.expiresIn,
+    refreshToken: refresh.refreshToken,
+    refreshExpiresIn: refresh.expiresIn,
     user: publicUser(user),
   });
+}
+
+function getCookie(req: Pick<Request, 'header'>, name: string): string | null {
+  const cookie = req.header('cookie');
+
+  if (!cookie) {
+    return null;
+  }
+
+  for (const pair of cookie.split(';')) {
+    const [rawKey, ...rawValue] = pair.trim().split('=');
+
+    if (rawKey === name) {
+      return decodeURIComponent(rawValue.join('='));
+    }
+  }
+
+  return null;
 }
 
 authRouter.post(
@@ -148,44 +171,50 @@ authRouter.post(
   },
 );
 
-authRouter.post('/refresh', async (req: Request, res: Response) => {
-  const refreshToken = req.cookies?.refreshToken;
+authRouter.post(
+  '/refresh',
+  async (req: Request<object, object, { refreshToken?: unknown }>, res: Response) => {
+    const refreshToken =
+      typeof req.body.refreshToken === 'string'
+        ? req.body.refreshToken
+        : getCookie(req, 'refreshToken');
 
-  if (!refreshToken) {
-    sendError(res, 401, 'Refresh token is required');
-    return;
-  }
+    if (!refreshToken) {
+      sendError(res, 401, 'Refresh token is required');
+      return;
+    }
 
-  const rotated = await rotateRefreshToken(refreshToken);
+    const rotated = await rotateRefreshToken(refreshToken);
 
-  if (!rotated) {
-    res.clearCookie('accessToken', cookieOptions);
-    res.clearCookie('refreshToken', cookieOptions);
-    sendError(res, 401, 'Invalid refresh token');
-    return;
-  }
+    if (!rotated) {
+      res.clearCookie('accessToken', cookieOptions);
+      res.clearCookie('refreshToken', cookieOptions);
+      sendError(res, 401, 'Invalid refresh token');
+      return;
+    }
 
-  const access = createAccessToken({ id: rotated.user.id, email: rotated.user.email });
+    const access = createAccessToken({ id: rotated.user.id, email: rotated.user.email });
 
-  res.cookie('accessToken', access.accessToken, {
-    ...cookieOptions,
-    maxAge: access.expiresIn * 1000,
-  });
+    res.cookie('accessToken', access.accessToken, {
+      ...cookieOptions,
+      maxAge: access.expiresIn * 1000,
+    });
 
-  res.cookie('refreshToken', rotated.refreshToken, {
-    ...cookieOptions,
-    maxAge: rotated.refreshExpiresIn * 1000,
-  });
+    res.cookie('refreshToken', rotated.refreshToken, {
+      ...cookieOptions,
+      maxAge: rotated.refreshExpiresIn * 1000,
+    });
 
-  res.status(200).json({
-    message: 'Tokens refreshed successfully',
-    user: publicUser(rotated.user),
-  });
-});
+    res.status(200).json({
+      message: 'Tokens refreshed successfully',
+      user: publicUser(rotated.user),
+    });
+  },
+);
 
 authRouter.post('/logout', jwtGuard, async (req: Request, res: Response) => {
   const { payload } = (req as AuthenticatedRequest).auth;
-  const refreshToken = req.cookies?.refreshToken;
+  const refreshToken = getCookie(req, 'refreshToken');
 
   await revokeToken(payload.jti, payload.sub, payload.exp);
 

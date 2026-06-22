@@ -1,0 +1,33 @@
+<svg width="520" height="520" viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kanri workflow illustration">
+  <circle cx="84" cy="98" r="35" fill="#F7EAD9" opacity="0.9" />
+  <g opacity="0.55" fill="#D8DCE5">
+    <circle cx="410" cy="36" r="5" />
+    <circle cx="443" cy="36" r="5" />
+    <circle cx="476" cy="36" r="5" />
+    <circle cx="509" cy="36" r="5" />
+    <circle cx="542" cy="36" r="5" />
+    <circle cx="410" cy="62" r="5" />
+    <circle cx="443" cy="62" r="5" />
+    <circle cx="476" cy="62" r="5" />
+    <circle cx="509" cy="62" r="5" />
+    <circle cx="542" cy="62" r="5" />
+    <circle cx="410" cy="88" r="5" />
+    <circle cx="443" cy="88" r="5" />
+    <circle cx="476" cy="88" r="5" />
+    <circle cx="509" cy="88" r="5" />
+    <circle cx="542" cy="88" r="5" />
+    <circle cx="410" cy="114" r="5" />
+    <circle cx="443" cy="114" r="5" />
+    <circle cx="476" cy="114" r="5" />
+    <circle cx="509" cy="114" r="5" />
+    <circle cx="542" cy="114" r="5" />
+  </g>
+  <path d="M188 98H344C373.823 98 398 122.177 398 152V244" stroke="#DCE8FF" stroke-width="82" stroke-linecap="round" opacity="0.88" />
+  <path d="M360 220L398 260L436 220" stroke="#DCE8FF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+  <path d="M98 220V356C98 386.928 121.294 412.912 152.035 416.282L244 426" stroke="#DBF5F0" stroke-width="82" stroke-linecap="round" opacity="0.95" />
+  <path d="M222 372L292 430L210 474" stroke="#DBF5F0" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" />
+  <path d="M238 340H442C471.823 340 496 364.177 496 394V446C496 475.823 471.823 500 442 500H304" stroke="#ECE5FA" stroke-width="82" stroke-linecap="round" opacity="0.98" />
+  <path d="M290 442L224 496L300 540" stroke="#ECE5FA" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" />
+  <path d="M140 200H252" stroke="#DDF5EF" stroke-width="82" stroke-linecap="round" />
+  <path d="M230 158L300 210L230 260" stroke="#DDF5EF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

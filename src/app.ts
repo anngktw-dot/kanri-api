@@ -2,7 +2,8 @@ import express, { type NextFunction, type Request, type Response } from 'express
 
 import { authRouter } from './auth/auth.router.js';
 import { prisma } from './db.js';
-import { cors, requestId, securityHeaders } from './http/middleware.js';
+import cors from 'cors';
+import { requestId, securityHeaders } from './http/middleware.js';
 import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
 import { commentsRouter, statusesRouter, tasksRouter } from './tasks/tasks.router.js';
@@ -13,7 +14,7 @@ export const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://deliveryleleka.netlify.app',
+  'https://kanriboard.netlify.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 

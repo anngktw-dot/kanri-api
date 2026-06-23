@@ -1,8 +1,9 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 import { authRouter } from './auth/auth.router.js';
 import { prisma } from './db.js';
-import cors from 'cors';
 import { requestId, securityHeaders } from './http/middleware.js';
 import { sendError } from './http/responses.js';
 import { openApiDocument } from './openapi.js';
@@ -29,8 +30,15 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
 app.use(requestId);
-app.use(securityHeaders);
-app.use(cors);
+
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/docs')) {
+    return next();
+  }
+  securityHeaders(req, res, next);
+});
+
+app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/', (_req: Request, res: Response) => {
@@ -74,23 +82,12 @@ app.get('/docs', (_req: Request, res: Response) => {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kanri API Docs</title>
     <style>
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; color: #111827; background: #f9fafb; }
-      main { max-width: 920px; margin: 0 auto; padding: 48px 24px; }
-      h1 { margin: 0 0 8px; font-size: 36px; }
-      p { color: #4b5563; line-height: 1.6; }
-      code, pre { background: #111827; color: #f9fafb; border-radius: 8px; }
-      code { padding: 2px 6px; }
-      pre { padding: 18px; overflow-x: auto; }
-      a { color: #2563eb; }
+      body { margin: 0; }
     </style>
   </head>
   <body>
-    <main>
-      <h1>Kanri API</h1>
-      <p>OpenAPI documentation is available as JSON at <a href="/openapi.json">/openapi.json</a>.</p>
-      <p>Import it into Swagger UI, Postman, Insomnia, or any OpenAPI-compatible client.</p>
-      <pre><code>curl http://localhost:3000/openapi.json</code></pre>
-    </main>
+    <script id="api-reference" data-url="/openapi.json"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   </body>
 </html>`);
 });
